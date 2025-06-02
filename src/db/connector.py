@@ -26,9 +26,9 @@ class DataBaseConnector:
 
     async def create_account_table(self):
         await self.execute("""
-        CREATE TABLE IF NOT EXISTS account (
+        CREATE TABLE IF NOT EXISTS accounts (
         id SERIAL PRIMARY KEY,
-        name VARCHAR(50) NOT NULL,
+        login VARCHAR(50) NOT NULL UNIQUE,
         password VARCHAR(50) NOT NULL
         );
         """)
