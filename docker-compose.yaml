@@ -1,0 +1,28 @@
+version: '3.8'
+
+services:
+
+  simplesocialnetwork:
+    container_name: sst
+    build: ./
+    env_file:
+      - .env
+    ports:
+      - '8000:8000'
+    restart: always
+
+  sst_db:
+    image: postgres:latest
+    container_name: sst_db
+    environment:
+      POSTGRES_USER: $DB__USERNAME
+      POSTGRES_PASSWORD: $DB__PASSWORD
+      POSTGRES_DB: $DB__NAME
+      POSTGRES_PORT: 5432
+    ports:
+      - "6432:5432"
+    volumes:
+      - sstdata:/var/lib/postgresql/data
+
+volumes:
+  sstdata:
