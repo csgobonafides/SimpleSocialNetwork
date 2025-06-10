@@ -1,4 +1,9 @@
 
+import os
+from datetime import timedelta, datetime, timezone
+import jwt
+from fastapi import Request
+
 from core.exceptions import ForbiddenError
 from db.connector import DataBaseConnector
 from social_page.social_page_schemas import SocialPageRequest, SocialPageResponse
@@ -6,57 +11,72 @@ from core.exceptions import NotFoundError
 
 
 class Controller:
+    SECRET_KEY = os.getenv("SECRET_KEY")
+    ALGORITM = os.getenv("ALGORITM")
 
     def __init__(self, db: DataBaseConnector):
         self.db = db
 
-    async def create_social_page(self,user_id: int, page: SocialPageRequest) -> SocialPageResponse:
-        query = f"""INSERT INTO social (id, first_name, last_name, data_of_birth, gender, interests, city)
-        VALUES (
-        {user_id}, 
-        {page.first_name}, 
-        {page.last_name}, 
-        {page.data_of_birth}, 
-        {page.gender}, 
-        {page.interests}, 
-        {page.city}
-        )"""
+    async def register(self, social_page: SocialPageRequest) -> None:
+        check_user = """SELECT * FROM accounts WHERE login = $1;"""
+        result_check = await self.db.fetch(check_user, social_page.login)
+        if result_check:
+            raise ForbiddenError("Such user is already registered.")
+        add_user = """INSERT INTO accounts (login, password) VALUES ($1, $2) RETURNING id;"""
+        params_user = (social_page.login, social_page.password)
         try:
-            await self.db.execute(query)
+            new_user_id = await self.db.fetchval(add_user, *params_user)
         except Exception as ex:
             raise ex
-        else:
-            return SocialPageResponse(
-                page_id=user_id,
-                first_name=page.first_namem,
-                last_name=page.last_name,
-                data_of_birth=page.data_of_birth,
-                gender=page.gender,
-                interests=page.interests,
-                city=page.city
-            )
 
-    async def get_social_page_id(self, user_id: int) -> SocialPageResponse:
-        query = """SELECT * FROM social WHERE id = $1;"""
-        result = await self.db.fetch(query, user_id)
-        return SocialPageResponse(
-            page_id=result.get("page_id"),
-            first_name=result.get("first_name"),
-            last_name=result.get("last_name"),
-            data_of_birth=result.get("data_of_birth"),
-            gender=result.get("gender"),
-            interests=result.get("interests"),
-            city=result.get("city")
+        create_page = """INSERT INTO social (id, first_name, last_name, data_of_birth, gender, interests, city 
+        VALUES ($1, $2, $3, $4, $5, $6, $7);"""
+        params_page = (
+            new_user_id,
+            social_page.first_name,
+            social_page.last_name,
+            social_page.data_of_birth,
+            social_page.gender,
+            social_page.interests,
+            social_page.city
         )
+        try:
+            await self.db.execute(create_page, *params_page)
+        except Exception as ex:
+            raise ex
 
-    async def get_social_page_all(self, page: int = 1, page_size: int = 5) -> list[SocialPageResponse]:
-        offset = (page - 1) * page_size
-        params = (page_size, offset)
-        query = """SELECT * FROM social LIMIT $1 OFFSET $2;"""
-        results = await self.db.fetch(query, *params)
-        if results:
-            return [
-                SocialPageResponse(
+    async def login(self, login: str, password: str) -> dict:
+        check_user = """SELECT * FROM account WHERE login = $1;"""
+        result = await self.db.fetch(check_user, login)
+        if not result:
+            raise NotFoundError("User not found.")
+        user_id, user_login, user_psw = result[0]
+        if user_psw != password:
+            raise ForbiddenError("Incorrect password.")
+
+        return {"token": await self.create_token(user_id)}
+
+    async def create_token(self, user_id: int, time_of_life: int = 5) -> str:
+        jwt_token = jwt.encode(
+            {
+                'user_id': user_id,
+                'exp': datetime.now(tz=timezone.utc) + timedelta(minutes=time_of_life)
+            },
+            self.SECRET_KEY,
+            alg=self.ALGORITM
+        )
+        return jwt_token
+
+    async def get_id(self, request: Request, user_id: int) -> SocialPageResponse | None:
+        if not request.headers.get('authorization'):
+            raise NotFoundError("Token missing.")
+        jwt_token = request.headers.get('authorization')
+        try:
+            payload = jwt.decode(jwt_token, self.SECRET_KEY, algorithms=self.ALGORITM)
+            if payload:
+                query = """SELECT * FROM social WHERE id = $1;"""
+                result = await self.db.fetch(query, user_id)
+                return SocialPageResponse(
                     page_id=result.get("page_id"),
                     first_name=result.get("first_name"),
                     last_name=result.get("last_name"),
@@ -65,10 +85,12 @@ class Controller:
                     interests=result.get("interests"),
                     city=result.get("city")
                 )
-                for result in results
-            ]
-        else:
-            raise NotFoundError
+        except jwt.ExpiredSignatureError:
+            raise ForbiddenError("The token has expired.")
+        except jwt.InvalidTokenError:
+            raise ForbiddenError("Invalid token.")
+        except Exception as ex:
+            raise ex
 
 
 controller = None

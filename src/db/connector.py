@@ -20,6 +20,10 @@ class DataBaseConnector:
         async with self.pool.acquire() as connection:
             return await connection.fetch(query, *args)
 
+    async def fetchval(self, query: str, *args):
+        async with self.pool.acquire() as connection:
+            return await connection.fetchval(query, *args)
+
     async def execute(self, query: str, *args):
         async with self.pool.acquire() as connection:
             return await connection.execute(query, *args)

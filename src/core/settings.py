@@ -14,7 +14,7 @@ class DatabaseConfig(BaseSettings):
         return f"postgresql://{self.USERNAME}:{self.PASSWORD}@{self.HOST}:{self.PORT}/{self.NAME}"
 
 
-class Settings(DatabaseConfig):
+class Settings(BaseSettings):
     DB: DatabaseConfig
 
     class Config:
