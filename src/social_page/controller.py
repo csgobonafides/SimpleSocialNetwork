@@ -29,7 +29,7 @@ class Controller:
         except Exception as ex:
             raise ex
 
-        create_page = """INSERT INTO social (id, first_name, last_name, data_of_birth, gender, interests, city 
+        create_page = """INSERT INTO social (id, first_name, last_name, data_of_birth, gender, interests, city)
         VALUES ($1, $2, $3, $4, $5, $6, $7);"""
         params_page = (
             new_user_id,
@@ -46,7 +46,7 @@ class Controller:
             raise ex
 
     async def login(self, login: str, password: str) -> dict:
-        check_user = """SELECT * FROM account WHERE login = $1;"""
+        check_user = """SELECT * FROM accounts WHERE login = $1;"""
         result = await self.db.fetch(check_user, login)
         if not result:
             raise NotFoundError("User not found.")
@@ -63,32 +63,36 @@ class Controller:
                 'exp': datetime.now(tz=timezone.utc) + timedelta(minutes=time_of_life)
             },
             self.SECRET_KEY,
-            alg=self.ALGORITM
+            algorithm=self.ALGORITM
         )
         return jwt_token
 
     async def get_id(self, request: Request, user_id: int) -> SocialPageResponse | None:
         if not request.headers.get('authorization'):
             raise NotFoundError("Token missing.")
-        jwt_token = request.headers.get('authorization')
+        jwt_token = request.headers.get('authorization')[7:]
         try:
             payload = jwt.decode(jwt_token, self.SECRET_KEY, algorithms=self.ALGORITM)
             if payload:
                 query = """SELECT * FROM social WHERE id = $1;"""
                 result = await self.db.fetch(query, user_id)
+                record = result[0]
+                print(record["id"])
                 return SocialPageResponse(
-                    page_id=result.get("page_id"),
-                    first_name=result.get("first_name"),
-                    last_name=result.get("last_name"),
-                    data_of_birth=result.get("data_of_birth"),
-                    gender=result.get("gender"),
-                    interests=result.get("interests"),
-                    city=result.get("city")
+                    page_id=record["id"],
+                    first_name=record["first_name"],
+                    last_name=record["last_name"],
+                    data_of_birth=record["data_of_birth"],
+                    gender=record["gender"],
+                    interests=record["interests"],
+                    city=record["city"]
                 )
         except jwt.ExpiredSignatureError:
             raise ForbiddenError("The token has expired.")
         except jwt.InvalidTokenError:
             raise ForbiddenError("Invalid token.")
+        except IndexError:
+            raise NotFoundError("Record with this ID not found.")
         except Exception as ex:
             raise ex
 

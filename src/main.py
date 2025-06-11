@@ -6,12 +6,8 @@ import social_page.controller as control_page
 
 from db.connector import DataBaseConnector
 from core.settings import get_settings
-
 from social_page.api import router as social_router
 
-
-app = FastAPI()
-app.include_router(social_router, tags=["social_page"], prefix="/social_page")
 
 config = get_settings()
 
@@ -25,6 +21,10 @@ async def lifespan(_app: FastAPI):
     control_page.controller = control_page.Controller(database)
     yield
     await database.disconnect()
+
+
+app = FastAPI(lifespan=lifespan)
+app.include_router(social_router, tags=["social_page"], prefix="/social_page")
 
 
 if __name__ == '__main__':
