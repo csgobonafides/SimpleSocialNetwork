@@ -6,7 +6,7 @@ from fastapi import Request
 
 from core.exceptions import ForbiddenError
 from db.connector import DataBaseConnector
-from social_page.social_page_schemas import SocialPageRequest, SocialPageResponse
+from social_page.schemas import SocialPageRequest, SocialPageResponse
 from core.exceptions import NotFoundError
 
 
@@ -77,9 +77,8 @@ class Controller:
                 query = """SELECT * FROM social WHERE id = $1;"""
                 result = await self.db.fetch(query, user_id)
                 record = result[0]
-                print(record["id"])
                 return SocialPageResponse(
-                    page_id=record["id"],
+                    id=record["id"],
                     first_name=record["first_name"],
                     last_name=record["last_name"],
                     data_of_birth=record["data_of_birth"],

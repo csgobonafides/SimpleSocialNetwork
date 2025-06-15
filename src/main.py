@@ -6,7 +6,7 @@ import social_page.controller as control_page
 
 from db.connector import DataBaseConnector
 from core.settings import get_settings
-from social_page.api import router as social_router
+from social_page.router import router as social_router
 
 
 config = get_settings()

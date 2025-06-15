@@ -2,14 +2,14 @@
 from fastapi import APIRouter, Depends, Request, status
 
 from social_page.controller import get_controller
-from social_page.social_page_schemas import SocialPageRequest, SocialPageResponse, User
+from social_page.schemas import SocialPageRequest, SocialPageResponse, User, LoginResponse
 
 
 router = APIRouter()
 
 
-@router.post("/login", response_model=dict, status_code=status.HTTP_200_OK)
-async def login(user: User, controller = Depends(get_controller)) -> dict:
+@router.post("/login", response_model=LoginResponse, status_code=status.HTTP_200_OK)
+async def login(user: User, controller = Depends(get_controller)) -> LoginResponse:
     return await controller.login(user.login, user.password)
 
 

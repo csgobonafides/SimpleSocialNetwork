@@ -1,5 +1,5 @@
 
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 from datetime import date
 
 
@@ -15,7 +15,7 @@ class SocialPageRequest(BaseModel):
 
 
 class SocialPageResponse(BaseModel):
-    page_id: int
+    page_id: int = Field(alias="id")
     first_name: str
     last_name: str
     data_of_birth: date
@@ -27,3 +27,7 @@ class SocialPageResponse(BaseModel):
 class User(BaseModel):
     login: str
     password: str
+
+
+class LoginResponse(BaseModel):
+    token: str
