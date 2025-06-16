@@ -31,3 +31,7 @@ class User(BaseModel):
 
 class LoginResponse(BaseModel):
     token: str
+
+
+class RegisterResponse(BaseModel):
+    user_id: int = Field(alias="id")

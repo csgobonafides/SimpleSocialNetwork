@@ -28,24 +28,16 @@ class DataBaseConnector:
         async with self.pool.acquire() as connection:
             return await connection.execute(query, *args)
 
-    async def create_account_table(self):
-        await self.execute("""
-        CREATE TABLE IF NOT EXISTS accounts (
-        id SERIAL PRIMARY KEY,
-        login VARCHAR(50) NOT NULL UNIQUE,
-        password VARCHAR(50) NOT NULL
-        );
-        """)
-
     async def create_social_table(self):
         await self.execute("""
         CREATE TABLE IF NOT EXISTS social (
-        id INT PRIMARY KEY,
+        id SERIAL PRIMARY KEY,
+        login VARCHAR(50) NOT NULL,
+        password VARCHAR(100) NOT NULL,
         first_name VARCHAR(50) NOT NULL,
         last_name VARCHAR(50) NOT NULL,
         data_of_birth DATE NOT NULL,
         gender VARCHAR(20) NOT NULL,
         interests VARCHAR(100) NOT NULL,
-        city VARCHAR(50) NOT NULL,
-        FOREIGN KEY(id) REFERENCES accounts(id) ON DELETE CASCADE
+        city VARCHAR(50) NOT NULL
         );""")
