@@ -1,7 +1,7 @@
 
 import pytest
 import pytest_asyncio
-from httpx import AsyncClient
+from httpx import AsyncClient, ASGITransport
 
 from db.connector import DataBaseConnector
 from core.settings import get_settings, Settings
@@ -28,5 +28,6 @@ async def social_controller(test_db: DataBaseConnector) -> social_modul.Controll
 
 @pytest_asyncio.fixture
 async def xclient() -> AsyncClient:
-    async with AsyncClient(app=app, base_url="http://127.0.0.1:8010") as cli:
+    transport = ASGITransport(app=app, raise_app_exceptions=True)
+    async with AsyncClient(base_url="http://127.0.0.1:8010", transport=transport) as cli:
         yield cli

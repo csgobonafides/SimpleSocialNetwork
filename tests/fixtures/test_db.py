@@ -2,6 +2,7 @@
 import uuid
 from pathlib import Path
 import pytest
+import pytest_asyncio
 import asyncpg
 
 from core.settings import Settings, DatabaseConfig
@@ -20,20 +21,19 @@ def database(settings: Settings) -> DatabaseConfig:
     return settings.DB
 
 
-@pytest.fixture(scope="session")
+@pytest_asyncio.fixture(scope="session")
 async def prepare_test_database(database_name: str, database: DatabaseConfig) -> None:
     admin_conn = await asyncpg.connect(
-        user=database['USERNAME'],
-        password=database['PASSWORD'],
-        host=database['HOST'],
-        port=database['PORT'],
-        database=database['NAME']
+        user=database.USERNAME,
+        password=database.PASSWORD,
+        host=database.HOST,
+        port=database.PORT,
+        database=database.NAME
     )
     await admin_conn.execute(f'CREATE DATABASE "{database_name}"')
-    await admin_conn.close()
 
-    test_dns = (f"postgresql://{database['USERNAME']}:{database['PASSWORD']}@"
-                f"{database['HOST']}:{database['PORT']}/{database_name}")
+    test_dns = (f"postgresql://{database.USERNAME}:{database.PASSWORD}@"
+                f"{database.HOST}:{database.PORT}/{database_name}")
     test_conn = await asyncpg.connect(test_dns)
     try:
         await test_conn.execute("""
@@ -52,13 +52,6 @@ async def prepare_test_database(database_name: str, database: DatabaseConfig) ->
         yield test_dns
     finally:
         await test_conn.close()
-        admin_conn = await asyncpg.connect(
-            user=database["USERNAME"],
-            password=database["PASSWORD"],
-            host=database["HOST"],
-            port=database["PORT"],
-            database=database['NAME']
-        )
         await admin_conn.execute(f"""
                 SELECT pg_terminate_backend(pg_stat_activity.pid)
                 FROM pg_stat_activity
@@ -68,7 +61,7 @@ async def prepare_test_database(database_name: str, database: DatabaseConfig) ->
         await admin_conn.close()
 
 
-@pytest.fixture
+@pytest_asyncio.fixture
 async def test_db(prepare_test_database: str, database: DatabaseConfig, database_name: str) -> DataBaseConnector:
     conn = await asyncpg.connect(prepare_test_database)
     try:
