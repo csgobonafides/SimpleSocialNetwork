@@ -22,7 +22,7 @@ def social(hash_psw: str) -> SocialPageRequest:
         password=hash_psw,
         first_name="tests",
         last_name="tests",
-        data_of_birth=datetime.now(),
+        data_of_birth=datetime.now().date(),
         gender="O",
         interests="tests",
         city="ugansk"

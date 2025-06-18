@@ -15,7 +15,7 @@ async def test_register_201(xclient: AsyncClient, test_db: DataBaseConnector):
         "password": "ttest",
         "first_name": "ttest",
         "last_name": "ttest",
-        "data_of_birth": datetime.now(),
+        "data_of_birth": datetime.now().date(),
         "gender": "O",
         "interests": "ttest",
         "city": "Ugansk"
