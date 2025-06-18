@@ -9,7 +9,10 @@ import social_page.controller as social_modul
 from main import app
 
 
-pytest_plugins = []
+pytest_plugins = [
+    "fixtures.test_db",
+    "fixtures.prepare_social"
+]
 
 
 @pytest.fixture(scope="session")
