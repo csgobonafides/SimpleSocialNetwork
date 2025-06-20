@@ -11,7 +11,7 @@ from db.connector import DataBaseConnector
 from core.settings import get_settings
 from social_page.router import router as social_router
 from jwt_token.jwt_token import check_token
-from core.exceptions import NotFoundError
+from core.exceptions import NotFoundError, ForbiddenError
 
 
 config = get_settings()
@@ -56,6 +56,8 @@ async def check_jwt_middleware(request: Request, call_next):
         return JSONResponse(status_code=403, content={"detail": str(ex)})
     except NotFoundError as ex:
         return JSONResponse(status_code=404, content={"detail": str(ex)})
+    except ForbiddenError as ex:
+        return JSONResponse(status_code=403, content={"detail": str(ex)})
     except Exception as ex:
         return JSONResponse(status_code=500, content={"detail": str(ex)})
 

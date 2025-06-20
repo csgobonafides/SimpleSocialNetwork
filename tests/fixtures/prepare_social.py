@@ -5,7 +5,12 @@ from datetime import datetime
 
 from db.connector import DataBaseConnector
 from social_page.schemas import SocialPageRequest
+from jwt_token.jwt_token import create_token
 
+
+@pytest.fixture
+def jwt_token() -> str:
+    return create_token(user_id=1)
 
 
 @pytest.fixture
@@ -22,7 +27,7 @@ def social(hash_psw: str) -> SocialPageRequest:
         password=hash_psw,
         first_name="tests",
         last_name="tests",
-        data_of_birth=datetime.now().date(),
+        data_of_birth=datetime(1992, 9, 23),
         gender="O",
         interests="tests",
         city="ugansk"
