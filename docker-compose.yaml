@@ -1,17 +1,10 @@
 version: '3.8'
 
+name: HL-social-network
+
 services:
 
-  simplesocialnetwork:
-    container_name: sst
-    build: ./
-    env_file:
-      - .env
-    ports:
-      - '8000:8000'
-    restart: always
-
-  sst_db:
+  db:
     image: postgres:latest
     container_name: sst_db
     environment:
