@@ -4,7 +4,7 @@ import pytest_asyncio
 from httpx import AsyncClient, ASGITransport
 
 from db.connector import DataBaseConnector
-from core.settings import get_settings, Settings
+from core.settings import get_settings
 import social_page.controller as social_modul
 from main import app
 

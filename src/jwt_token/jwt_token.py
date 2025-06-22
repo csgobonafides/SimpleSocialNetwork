@@ -4,7 +4,7 @@ import jwt
 import os
 from fastapi import Request
 
-from core.exceptions import NotFoundError, ForbiddenError
+from core.exceptions import ForbiddenError
 
 
 _secret_key = os.getenv("SECRET_KEY")
