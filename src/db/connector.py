@@ -28,6 +28,10 @@ class DataBaseConnector:
         async with self.pool.acquire() as connection:
             return await connection.execute(query, *args)
 
+    async def executemany(self, query: str, args_list: list):
+        async with self.pool.acquire() as connection:
+            await connection.executemany(query, args_list)
+
     async def create_social_table(self):
         await self.execute("""
         CREATE TABLE IF NOT EXISTS social (

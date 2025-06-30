@@ -35,3 +35,8 @@ class LoginResponse(BaseModel):
 
 class RegisterResponse(BaseModel):
     user_id: int = Field(alias="id")
+
+
+class SearchUser(BaseModel):
+    first_name: str
+    last_name: str

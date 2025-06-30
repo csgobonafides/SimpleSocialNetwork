@@ -4,7 +4,7 @@ import bcrypt
 
 from core.exceptions import ForbiddenError
 from db.connector import DataBaseConnector
-from social_page.schemas import SocialPageRequest, SocialPageResponse, RegisterResponse, LoginResponse
+from social_page.schemas import SocialPageRequest, SocialPageResponse, RegisterResponse, LoginResponse, SearchUser, Test
 from core.exceptions import NotFoundError
 from jwt_token.jwt_token import create_token
 
@@ -72,6 +72,14 @@ class Controller:
             )
         except Exception as ex:
             raise ex
+
+
+    async def user_search(self, params: SearchUser) -> list[SocialPageResponse]:
+        users = await self.db.fetch(
+            """SELECT * FROM social WHERE first_name LIKE $1 AND last_name LIKE $2 ORDER BY id""",
+            params.first_name, params.last_name,
+        )
+        return [SocialPageResponse(**user) for user in users]
 
 
 controller = None
