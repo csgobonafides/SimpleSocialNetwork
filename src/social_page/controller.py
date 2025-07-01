@@ -4,7 +4,7 @@ import bcrypt
 
 from core.exceptions import ForbiddenError
 from db.connector import DataBaseConnector
-from social_page.schemas import SocialPageRequest, SocialPageResponse, RegisterResponse, LoginResponse, SearchUser, Test
+from social_page.schemas import SocialPageRequest, SocialPageResponse, RegisterResponse, LoginResponse, SearchUser
 from core.exceptions import NotFoundError
 from jwt_token.jwt_token import create_token
 

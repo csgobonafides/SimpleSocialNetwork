@@ -35,7 +35,7 @@ app.include_router(social_router, tags=["social_page"], prefix="/social_page")
 async def check_jwt_middleware(request: Request, call_next):
     excluded_paths = [
         "/social_page/login",
-        "/social_page/user/register",
+        "/social_page/users/register",
         "/docs",
         "/openapi.json",
         "/redoc",

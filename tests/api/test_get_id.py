@@ -9,7 +9,7 @@ async def test_get_id_200(xclient: AsyncClient, jwt_token: str):
     headers = {
         "Authorization": f"Bearer {jwt_token}"
     }
-    response = await xclient.get("/social_page/user/1", headers=headers)
+    response = await xclient.get("/social_page/users/1", headers=headers)
     assert response.status_code == 200, response.text
     assert response.json() == {
         "id": 1,
@@ -25,7 +25,7 @@ async def test_get_id_200(xclient: AsyncClient, jwt_token: str):
 @pytest.mark.asyncio
 @pytest.mark.usefixtures("prepare_social")
 async def test_get_id_403(xclient: AsyncClient):
-    response = await xclient.get("/social_page/user/1")
+    response = await xclient.get("/social_page/users/1")
     assert response.status_code == 403, response.text
     assert response.json() == {'detail': '403: Token missing.'}
 
@@ -36,7 +36,7 @@ async def test_get_id_invalid_token_error_403(xclient: AsyncClient, jwt_token: s
     headers = {
         "Authorization": f"Bearer {jwt_token+'a'}"
     }
-    response = await xclient.get("/social_page/user/1", headers=headers)
+    response = await xclient.get("/social_page/users/1", headers=headers)
     assert response.status_code == 403, response.text
     assert response.json() == {'detail': '403: Invalid token.'}
 
@@ -48,7 +48,7 @@ async def test_get_id_expired_signature_error_403(xclient: AsyncClient):
     headers = {
         "Authorization": f"Bearer {token}"
     }
-    response = await xclient.get("/social_page/user/1", headers=headers)
+    response = await xclient.get("/social_page/users/1", headers=headers)
     assert response.status_code == 403, response.text
     assert response.json() == {'detail': '403: The token has expired.'}
 
@@ -59,6 +59,6 @@ async def test_get_id_404(xclient: AsyncClient, jwt_token: str):
     headers = {
         "Authorization": f"Bearer {jwt_token}"
     }
-    response = await xclient.get("/social_page/user/22", headers=headers)
+    response = await xclient.get("/social_page/users/22", headers=headers)
     assert response.status_code == 404, response.text
     assert response.json() == {"detail": "No user with this id found."}

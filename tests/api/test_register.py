@@ -17,7 +17,7 @@ async def test_register_201(xclient: AsyncClient):
         "interests": "ttest",
         "city": "Ugansk"
     }
-    response = await xclient.post("/social_page/user/register", json=payload)
+    response = await xclient.post("/social_page/users/register", json=payload)
     assert response.status_code == 201, response.text
 
 
@@ -34,7 +34,7 @@ async def test_register_403(xclient: AsyncClient):
         "interests": "ttest",
         "city": "Ugansk"
     }
-    response = await xclient.post("/social_page/user/register", json=payload)
+    response = await xclient.post("/social_page/users/register", json=payload)
     assert response.status_code == 403, response.text
     assert response.json() == {"detail": "Such user is already registered."}
 
@@ -52,7 +52,7 @@ async def test_register_422(xclient: AsyncClient):
         "interests": "ttest",
         "city": "Ugansk"
     }
-    response = await xclient.post("/social_page/user/register", json=payload)
+    response = await xclient.post("/social_page/users/register", json=payload)
     assert response.status_code == 422, response.text
     assert response.json() == {"detail": [
         {"type": "string_type",

@@ -2,7 +2,7 @@
 from fastapi import APIRouter, Depends, status
 
 from social_page.controller import get_controller
-from social_page.schemas import SocialPageRequest, SocialPageResponse, User, LoginResponse, RegisterResponse, SearchUser, Test
+from social_page.schemas import SocialPageRequest, SocialPageResponse, User, LoginResponse, RegisterResponse, SearchUser
 
 
 router = APIRouter()
