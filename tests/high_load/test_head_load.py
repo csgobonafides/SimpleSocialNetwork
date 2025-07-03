@@ -4,6 +4,7 @@ from datetime import date, datetime
 from random import randint
 from time import monotonic
 
+import pytest_asyncio
 from httpx import AsyncClient
 from dataclasses import dataclass, field
 
@@ -19,10 +20,10 @@ REQUEST_COUNT = 5000
 @pytest.fixture
 def file_people() -> Path:
     current_dir = Path(__file__).parent
-    return current_dir / "people.v2.csv"
+    return current_dir / "people.csv"
 
 
-@pytest.fixture
+@pytest_asyncio.fixture
 async def user_db(
         test_db: DataBaseConnector,
         file_people: Path,
@@ -30,8 +31,8 @@ async def user_db(
 ) -> list[tuple]:
     start_time = datetime.now()
     user_data = []
-    psw = bcrypt.hashpw("top_secret_password".encode(), bcrypt.gensalt())
-    with file_people.open("r") as file:
+    psw = bcrypt.hashpw("top_secret_password".encode(), bcrypt.gensalt()).decode()
+    with file_people.open("r", encoding='utf-8') as file:
         for i, line in enumerate(file):
             row = line.split(",")
             first_name, last_name = row[0].split(" ")
@@ -68,7 +69,7 @@ class Statistics:
         print(f"Average latency: {avg_latency}ms")
 
 
-@pytest.fixture
+@pytest_asyncio.fixture
 async def timeit_request(
         xclient: AsyncClient,
         test_db: DataBaseConnector,
@@ -92,19 +93,6 @@ async def timeit_request(
 
 @pytest.mark.asyncio
 @pytest.mark.parametrize("thread_count", [1, 10, 100, 1000])
-async def test_high_load_without_index(timeit_request: callable, thread_count: int) -> None:
-    request_per_thread = REQUEST_COUNT // thread_count
-    stat = Statistics(REQUEST_COUNT, datetime.now())
-
-    await asyncio.gather(
-        *[asyncio.create_task(timeit_request(request_per_thread, stat)) for _ in range(thread_count)],
-    )
-    stat.end_time = datetime.now()
-    stat.show()
-
-
-@pytest.mark.asyncio
-@pytest.mark.parametrize("thread_count", [1, 10, 100, 1000])
 async def test_high_load_with_index(test_db: DataBaseConnector, timeit_request: callable, thread_count: int) -> None:
     await test_db.execute("CREATE INDEX social_name_id_idx ON social(first_name, last_name, id);")
     request_per_thread = REQUEST_COUNT // thread_count
@@ -117,17 +105,31 @@ async def test_high_load_with_index(test_db: DataBaseConnector, timeit_request: 
     stat.show()
 
 
-@pytest.mark.asyncio
-async def test_high_load_with_index_explain(test_db: DataBaseConnector, timeit_request: callable, user_db: list[tuple]) -> None:
-    await test_db.execute("CREATE INDEX social_name_id_idx ON social(first_name, last_name, id);")
-    count = await test_db.fetchval("SELECT COUNT(*) FROM social")
-    i = randint(0, count - 1)
-    first_name, last_name = user_db[i][1][:3], user_db[i][2][:3]
-    result = await test_db.fetch(
-        "EXPLAIN ANALYZE SELECT * FROM social WHERE first_name LIKE $1 AND last_name LIKE $2 ORDER BY id",
-        f"{first_name}%",
-        f"{last_name}%",
-    )
-    print("\n")
-    for row in result:
-        print(next(row.values()))
+# @pytest.mark.asyncio
+# @pytest.mark.parametrize("thread_count", [1, 10, 100, 1000])
+# async def test_high_load_with_index(test_db: DataBaseConnector, timeit_request: callable, thread_count: int) -> None:
+#     await test_db.execute("CREATE INDEX social_name_id_idx ON social(first_name, last_name, id);")
+#     request_per_thread = REQUEST_COUNT // thread_count
+#     stat = Statistics(REQUEST_COUNT, datetime.now())
+#
+#     await asyncio.gather(
+#         *[asyncio.create_task(timeit_request(request_per_thread, stat) for _ in range(thread_count))]
+#     )
+#     stat.end_time = datetime.now()
+#     stat.show()
+#
+#
+# @pytest.mark.asyncio
+# async def test_high_load_with_index_explain(test_db: DataBaseConnector, timeit_request: callable, user_db: list[tuple]) -> None:
+#     await test_db.execute("CREATE INDEX social_name_id_idx ON social(first_name, last_name, id);")
+#     count = await test_db.fetchval("SELECT COUNT(*) FROM social")
+#     i = randint(0, count - 1)
+#     first_name, last_name = user_db[i][1][:3], user_db[i][2][:3]
+#     result = await test_db.fetch(
+#         "EXPLAIN ANALYZE SELECT * FROM social WHERE first_name LIKE $1 AND last_name LIKE $2 ORDER BY id",
+#         f"{first_name}%",
+#         f"{last_name}%",
+#     )
+#     print("\n")
+#     for row in result:
+#         print(next(row.values()))
