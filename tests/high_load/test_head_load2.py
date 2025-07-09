@@ -136,3 +136,18 @@ async def test_with_index(
                 await _stats_callback(latency)
 
     await asyncio.gather(*[asyncio.create_task(make_request()) for _ in range(thread_count)])
+
+
+@pytest.mark.asyncio
+async def test_explain(test_db: DataBaseConnector, user_db: list[tuple]):
+    count = await test_db.fetchval("SELECT COUNT(*) FROM social;")
+    await test_db.execute("CREATE INDEX social_name_id_idx ON social(first_name, last_name, id);")
+    i = randint(0, count - 1)
+    first_name, last_name = user_db[i][2][:3], user_db[i][3][:3]
+    result = await test_db.fetch("EXPLAIN ANALYZE SELECT * FROM social WHERE first_name LIKE $1 AND last_name LIKE $2 ORDER BY id",
+                                 f"{first_name}%",
+                                 f"{last_name}%",
+                                 )
+    print("\n")
+    for i in result:
+        print(next(i.values()))
