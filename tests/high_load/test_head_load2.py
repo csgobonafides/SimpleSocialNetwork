@@ -107,3 +107,32 @@ async def test_not_index(
                 await _stats_callback(latency)
 
     await asyncio.gather(*[asyncio.create_task(make_request()) for _ in range(thread_count)])
+
+
+@pytest.mark.asyncio
+@pytest.mark.parametrize("thread_count", [1, 10, 100, 1000])
+@statistic_decor
+async def test_with_index(
+        xclient: AsyncClient,
+        test_db: DataBaseConnector,
+        user_db: list[tuple],
+        jwt_token: str,
+        thread_count: int,
+        _stats_callback: Callable[[float], None] = None
+):
+    count = await test_db.fetchval("SELECT COUNT(*) FROM social;")
+    await test_db.execute("CREATE INDEX social_name_id_idx ON social(first_name, last_name, id);")
+    headers = {"Authorization": f"Bearer {jwt_token}"}
+    request_per_thread = REQUEST_COUNT // thread_count
+
+    async def make_request():
+        for _ in range(request_per_thread):
+            start_time = monotonic()
+            i = randint(0, count - 1)
+            params = {"first_name": user_db[i][2][:3], "last_name": user_db[i][3][:3]}
+            await xclient.get("/user/search", params=params, headers=headers)
+            latency = round(1000.0 * (monotonic() - start_time), 3)
+            if _stats_callback:
+                await _stats_callback(latency)
+
+    await asyncio.gather(*[asyncio.create_task(make_request()) for _ in range(thread_count)])
