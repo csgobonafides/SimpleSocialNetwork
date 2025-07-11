@@ -16,7 +16,7 @@ async def login(
     return await controller.login(user.login, user.password)
 
 
-@router.get("/users/{user_id}", response_model=SocialPageResponse, status_code=status.HTTP_200_OK)
+@router.get("/users/get/{user_id}", response_model=SocialPageResponse, status_code=status.HTTP_200_OK)
 async def get_id(
         user_id: int,
         controller = Depends(get_controller)
@@ -34,7 +34,7 @@ async def register(
 
 @router.get("/users/search", response_model=list[SocialPageResponse], status_code=status.HTTP_200_OK)
 async def user_search(
-        params: SearchUser,
+        params: SearchUser = Depends(SearchUser),
         controller = Depends(get_controller)
 ) -> list[SocialPageResponse]:
     return await controller.user_search(params=params)

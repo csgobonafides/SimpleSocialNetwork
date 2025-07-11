@@ -11,7 +11,7 @@ from main import app
 
 pytest_plugins = [
     "fixtures.test_db",
-    "fixtures.prepare_social"
+    "fixtures.prepare_social",
 ]
 
 

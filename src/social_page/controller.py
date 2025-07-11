@@ -76,8 +76,8 @@ class Controller:
 
     async def user_search(self, params: SearchUser) -> list[SocialPageResponse]:
         users = await self.db.fetch(
-            """SELECT * FROM social WHERE first_name LIKE $1 AND last_name LIKE $2 ORDER BY id""",
-            params.first_name, params.last_name,
+            """SELECT * FROM social WHERE first_name ILIKE $1 AND last_name ILIKE $2 ORDER BY id""",
+            f"{params.first_name}%", f"{params.last_name}%",
         )
         return [SocialPageResponse(**user) for user in users]
 

@@ -42,7 +42,7 @@ def statistic_decor(func: Callable) -> Callable:
             avg_latency = round(sum(all_latency) / len(all_latency), 2)
 
             print(f"Request count: {request_count}")
-            print(f"Total time: {total_time}s")
+            print(f"Total time: {round(total_time, 1)}s")
             print(f"Requests per second: {rps}")
             print(f"Min latency: {min_latency}ms")
             print(f"Max latency: {max_latency}ms")
@@ -101,7 +101,7 @@ async def test_not_index(
             start_time = monotonic()
             i = randint(0, count - 1)
             params = {"first_name": user_db[i][2][:3], "last_name": user_db[i][3][:3]}
-            await xclient.get("/user/search", params=params, headers=headers)
+            await xclient.get("/social_page/users/search", params=params, headers=headers)
             latency = round(1000.0 * (monotonic() - start_time), 3)
             if _stats_callback:
                 await _stats_callback(latency)
@@ -130,7 +130,7 @@ async def test_with_index(
             start_time = monotonic()
             i = randint(0, count - 1)
             params = {"first_name": user_db[i][2][:3], "last_name": user_db[i][3][:3]}
-            await xclient.get("/user/search", params=params, headers=headers)
+            await xclient.get("/social_page/users/search", params=params, headers=headers)
             latency = round(1000.0 * (monotonic() - start_time), 3)
             if _stats_callback:
                 await _stats_callback(latency)
@@ -144,7 +144,7 @@ async def test_explain(test_db: DataBaseConnector, user_db: list[tuple]):
     await test_db.execute("CREATE INDEX social_name_id_idx ON social(first_name, last_name, id);")
     i = randint(0, count - 1)
     first_name, last_name = user_db[i][2][:3], user_db[i][3][:3]
-    result = await test_db.fetch("EXPLAIN ANALYZE SELECT * FROM social WHERE first_name LIKE $1 AND last_name LIKE $2 ORDER BY id",
+    result = await test_db.fetch("EXPLAIN ANALYZE SELECT * FROM social WHERE first_name ILIKE $1 AND last_name ILIKE $2 ORDER BY id",
                                  f"{first_name}%",
                                  f"{last_name}%",
                                  )
