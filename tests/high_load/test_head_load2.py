@@ -121,7 +121,9 @@ async def test_with_index(
         _stats_callback: Callable[[float], None] = None
 ):
     count = await test_db.fetchval("SELECT COUNT(*) FROM social;")
-    await test_db.execute("CREATE INDEX social_name_id_idx ON social(first_name, last_name, id);")
+    await test_db.execute("CREATE INDEX social_name_id_idx ON social(first_name varchar_pattern_ops, last_name varchar_pattern_ops, id);")
+    result = await test_db.execute("ANALYZE social;")
+    print(f"TEST RESULT: {result}")
     headers = {"Authorization": f"Bearer {jwt_token}"}
     request_per_thread = REQUEST_COUNT // thread_count
 
@@ -141,10 +143,10 @@ async def test_with_index(
 @pytest.mark.asyncio
 async def test_explain(test_db: DataBaseConnector, user_db: list[tuple]):
     count = await test_db.fetchval("SELECT COUNT(*) FROM social;")
-    await test_db.execute("CREATE INDEX social_name_id_idx ON social(first_name, last_name, id);")
+    await test_db.execute("CREATE INDEX social_name_id_idx ON social(first_name varchar_pattern_ops, last_name varchar_pattern_ops, id);")
     i = randint(0, count - 1)
     first_name, last_name = user_db[i][2][:3], user_db[i][3][:3]
-    result = await test_db.fetch("EXPLAIN ANALYZE SELECT * FROM social WHERE first_name ILIKE $1 AND last_name ILIKE $2 ORDER BY id",
+    result = await test_db.fetch("EXPLAIN ANALYZE SELECT * FROM social WHERE first_name LIKE $1 AND last_name LIKE $2 ORDER BY id",
                                  f"{first_name}%",
                                  f"{last_name}%",
                                  )
