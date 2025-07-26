@@ -11,35 +11,35 @@
 ### Без использования индексов
 
 
-|Потоки     |RPS       |Avg latency	|Min latency | Max latency | Total time |
-| :-------- | :------- | :----------|------------|-------------|------------|
-| 1         | 27.3     | 36.61ms    | 31.0ms     | 63.0ms      | 183.2s     |
-| 10        | 700.28   | 13.39ms    | 0.0ms      | 125.0ms     | 7.1s       |
-| 100       | 904.0    | 104.27ms   | 0.0ms      | 282.0ms     | 5.5s       |
-| 1000      | 804.12   | 1128.21ms  | 266.0ms    | 1563.0ms    | 6.2s       |
+|Потоки     | RPS      | Avg latency | Min latency | Max latency | Total time |
+| :-------- |:---------|:------------|-------------|-------------|------------|
+| 1         | 31.18    | 32.05ms     | 15.0ms      | 63.0ms      | 160.4s     |
+| 10        | 102.99   | 94.87ms     | 31.0ms      | 204.0ms     | 48.5s      |
+| 100       | 104.27   | 944.03ms    | 31.0ms      | 2625.0ms    | 48.0s      |
+| 1000      | 100.03   | 8915.4ms    | 47.0ms      | 29562.0ms   | 50.0s      |
 
 #### С использованием инекса B-Tree по полям (first_name, last_name, id)
 
-|Потоки     |RPS       |Avg latency	|Min latency | Max latency | Total time |
-| :-------- | :------- | :----------|------------|-------------|------------|
-| 1         | 246.34   | 3.76ms     | 0.0ms      | 32.0ms      | 20.3s      |
-| 10        | 651.72   | 12.52ms    | 0.0ms      | 79.0ms      |  7.7s      |
-| 100       | 732.28   | 106.96ms   | 0.0ms      | 266.0ms     | 6.8s       |
-| 1000      | 582.89   | 1132.04ms  | 375.0ms    | 1500.0ms    | 8.6s       |
+|Потоки     | RPS       | Avg latency | Min latency | Max latency  | Total time |
+| :-------- |:----------|:------------|-------------|--------------|------------|
+| 1         | 253.37    | 3.79ms      | 0.0ms       | 63.0ms       | 19.7s      |
+| 10        | 481.93    | 20.57ms     | 0.0ms       | 78.0ms       |  10.4s     |
+| 100       | 493.1     | 185.31ms    | 0.0ms       | 1532.0ms     | 10.1s      |
+| 1000      | 415.59    | 1580.86ms   | 0.0ms       | 10453.0ms    | 12.0s      |
 
 
 ### Explain запросов после индекса
 
 
 ```
-Sort  (cost=312.38..312.44 rows=25 width=974) (actual time=1.833..1.840 rows=197 loops=1)
+Sort  (cost=8.47..8.47 rows=1 width=144) (actual time=0.153..0.154 rows=20 loops=1)
   Sort Key: id
-  Sort Method: quicksort  Memory: 56kB
-  ->  Index Scan using social_name_id_idx on social  (cost=0.42..311.80 rows=25 width=974) (actual time=0.061..1.794 rows=197 loops=1)
-        Index Cond: (((first_name)::text ~>=~ 'Его'::text) AND ((first_name)::text ~<~ 'Егп'::text) AND ((last_name)::text ~>=~ 'Арт'::text) AND ((last_name)::text ~<~ 'Ару'::text))
-        Filter: (((first_name)::text ~~ 'Его%'::text) AND ((last_name)::text ~~ 'Арт%'::text))
-Planning Time: 0.205 ms
-Execution Time: 1.858 ms
+  Sort Method: quicksort  Memory: 28kB
+  ->  Index Scan using social_name_id_idx on social  (cost=0.42..8.46 rows=1 width=144) (actual time=0.076..0.148 rows=20 loops=1)
+        Index Cond: (((first_name)::text ~>=~ 'Выс'::text) AND ((first_name)::text ~<~ 'Выт'::text) AND ((last_name)::text ~>=~ 'Пол'::text) AND ((last_name)::text ~<~ 'Пом'::text))
+        Filter: (((first_name)::text ~~ 'Выс%'::text) AND ((last_name)::text ~~ 'Пол%'::text))
+Planning Time: 0.239 ms
+Execution Time: 0.165 ms
 ```
 
 

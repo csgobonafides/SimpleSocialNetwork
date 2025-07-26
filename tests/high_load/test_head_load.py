@@ -101,7 +101,9 @@ async def test_not_index(
             start_time = monotonic()
             i = randint(0, count - 1)
             params = {"first_name": user_db[i][2][:3], "last_name": user_db[i][3][:3]}
-            await xclient.get("/social_page/users/search", params=params, headers=headers)
+            response = await xclient.get("/social_page/users/search", params=params, headers=headers)
+            if response.status_code != 200:
+                print(f"TEST RESPONSE STATUS: {response.status_code}, TEST JSON: {response.json()}")
             latency = round(1000.0 * (monotonic() - start_time), 3)
             if _stats_callback:
                 await _stats_callback(latency)
@@ -120,10 +122,15 @@ async def test_with_index(
         thread_count: int,
         _stats_callback: Callable[[float], None] = None
 ):
+    try:
+        await test_db.execute("""
+                CREATE INDEX IF NOT EXISTS social_name_id_idx 
+                ON social(first_name varchar_pattern_ops, last_name varchar_pattern_ops, id)
+            """)
+    except Exception as e:
+        print(f"Index creation error: {str(e)}")
+
     count = await test_db.fetchval("SELECT COUNT(*) FROM social;")
-    await test_db.execute("CREATE INDEX social_name_id_idx ON social(first_name varchar_pattern_ops, last_name varchar_pattern_ops, id);")
-    result = await test_db.execute("ANALYZE social;")
-    print(f"TEST RESULT: {result}")
     headers = {"Authorization": f"Bearer {jwt_token}"}
     request_per_thread = REQUEST_COUNT // thread_count
 
@@ -132,7 +139,9 @@ async def test_with_index(
             start_time = monotonic()
             i = randint(0, count - 1)
             params = {"first_name": user_db[i][2][:3], "last_name": user_db[i][3][:3]}
-            await xclient.get("/social_page/users/search", params=params, headers=headers)
+            response = await xclient.get("/social_page/users/search", params=params, headers=headers)
+            if response.status_code != 200:
+                print(f"TEST RESPONSE STATUS: {response.status_code}, TEST JSON: {response.json()}")
             latency = round(1000.0 * (monotonic() - start_time), 3)
             if _stats_callback:
                 await _stats_callback(latency)
@@ -142,8 +151,14 @@ async def test_with_index(
 
 @pytest.mark.asyncio
 async def test_explain(test_db: DataBaseConnector, user_db: list[tuple]):
+    try:
+        await test_db.execute("""
+                   CREATE INDEX IF NOT EXISTS social_name_id_idx 
+                   ON social(first_name varchar_pattern_ops, last_name varchar_pattern_ops, id)
+               """)
+    except Exception as e:
+        print(f"Index creation error: {str(e)}")
     count = await test_db.fetchval("SELECT COUNT(*) FROM social;")
-    await test_db.execute("CREATE INDEX social_name_id_idx ON social(first_name varchar_pattern_ops, last_name varchar_pattern_ops, id);")
     i = randint(0, count - 1)
     first_name, last_name = user_db[i][2][:3], user_db[i][3][:3]
     result = await test_db.fetch("EXPLAIN ANALYZE SELECT * FROM social WHERE first_name LIKE $1 AND last_name LIKE $2 ORDER BY id",

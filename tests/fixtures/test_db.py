@@ -63,13 +63,11 @@ async def prepare_test_database(database_name: str, database: DatabaseConfig) ->
 
 @pytest_asyncio.fixture
 async def test_db(prepare_test_database: str, database: DatabaseConfig, database_name: str) -> DataBaseConnector:
-    conn = await asyncpg.connect(prepare_test_database)
+
+    db_connector = DataBaseConnector(prepare_test_database)
+    await db_connector.connect()
     try:
-        tr = conn.transaction()
-        await tr.start()
-        try:
-            yield conn
-        finally:
-            await tr.rollback()
+        await db_connector.execute("TRUNCATE TABLE social RESTART IDENTITY CASCADE")
+        yield db_connector
     finally:
-        await conn.close()
+        await db_connector.disconnect()

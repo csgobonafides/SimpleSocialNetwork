@@ -2,15 +2,13 @@
 import asyncpg
 
 class DataBaseConnector:
-    def __init__(self, db_url: str, max_connections: int = 10):
+    def __init__(self, db_url: str):
         self.db_url = db_url
         self.pool = None
-        self.max_connections = max_connections
 
     async def connect(self):
         self.pool = await asyncpg.create_pool(
-            self.db_url,
-            max_size=self.max_connections
+            self.db_url
         )
 
     async def disconnect(self):
